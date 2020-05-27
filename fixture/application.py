@@ -1,9 +1,10 @@
 from selenium import webdriver
-from fixture.project import ProjectHelper
 from fixture.session import SessionHelper
+from fixture.project import ProjectHelper
+
 
 class Application:
-    def __init__(self, browser, base_url):
+    def __init__(self, browser, config):
         if browser == "firefox":
             self.wd = webdriver.Firefox()
         elif browser == "chrome":
@@ -12,11 +13,13 @@ class Application:
             self.wd = webdriver.Ie()
         else:
             raise ValueError("Unrecognized browser %s" % browser)
-        self.wd.implicitly_wait(3)
+        self.wd.implicitly_wait(2)
         self.session = SessionHelper(self)
         self.project = ProjectHelper(self)
-        self.base_url = base_url
-
+        self.config = config
+        self.base_url = config["web"]["baseUrl"]
+        self.username = config["webadmin"]["username"]
+        self.password = config["webadmin"]["password"]
 
     def is_valid(self):
         try:
@@ -25,9 +28,10 @@ class Application:
         except:
             return False
 
-    def open_home_page(self):
-        wd = self.wd
-        wd.get(self.base_url)
-
     def destroy(self):
         self.wd.quit()
+
+    def open_home_page_by_url(self):
+        wd = self.wd
+        if not (len(wd.find_elements_by_xpath("(//input[@value='Login'])")) > 0):
+            wd.get(self.base_url)
